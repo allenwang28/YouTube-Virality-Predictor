@@ -3,7 +3,6 @@ import requests # pip install requests
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 import progressbar # pip install progressbar2 
 
@@ -36,6 +35,7 @@ for index, row in bar(df.iterrows()):
     link = row[1][2:-1]
     file_name = os.path.join(IMG_DIR_PATH, '{0}.jpg'.format(video_id))
 
-    f = open(file_name, 'wb')
-    f.write(requests.get(link).content)
-    f.close()
+    if not os.path.isfile(file_name):
+        f = open(file_name, 'wb')
+        f.write(requests.get(link).content)
+        f.close()
