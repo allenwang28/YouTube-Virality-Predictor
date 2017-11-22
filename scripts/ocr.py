@@ -6,7 +6,7 @@ import httplib, urllib, base64, json
 ###############################################
 
 # Replace the subscription_key string value with your valid subscription key.
-subscription_key = '99111d8302ee4f60a5d8b114abdf531f'
+subscription_key = 'f59430e694b64d5588381d1a0bab2b6f'
 
 # Replace or verify the region.
 #
@@ -31,7 +31,7 @@ params = urllib.urlencode({
 })
 
 # The URL of a JPEG image containing text.
-body = "{'url':'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png'}"
+body = "{'url':'https://i.ytimg.com/vi/mx_atGWTvsg/default.jpg'}"
 
 try:
     # Execute the REST API call and get the response.

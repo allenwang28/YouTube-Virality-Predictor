@@ -29,6 +29,6 @@ for index, row in df.iterrows():
 df = df.drop_duplicates(subset='Id', keep='last')
 
 #write to clean_csv
-data.to_csv(new_clean_subset, index =False);
+df.to_csv(new_clean_subset, index =False);
 
 print ('Total: {0} images'.format(df.shape[0]))
