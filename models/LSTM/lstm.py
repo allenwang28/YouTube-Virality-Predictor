@@ -122,13 +122,13 @@ model.compile(loss='categorical_crossentropy',
 
 model.fit(x_train, y_train,
           batch_size=128,
-          epochs=1,
+          epochs=10,
           validation_data=(x_val, y_val))
 
 scores = model.evaluate(x_val, y_val, verbose=0)
 print("Accuracy: %.2f%%" % (scores[1]*100))
 
-model.save('top10predictor.h5')
+model.save('predictor.h5')
 
 """
 # create the model
