@@ -14,7 +14,7 @@ ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 IMG_DIR_PATH = os.path.join(ROOT_DIR, '..', 'images')
 DATA_PATH = os.path.join(ROOT_DIR, '..', 'data')
 
-english_words_set = set(words.words())
+#english_words_set = set(words.words())
 
 def get_percent_english(s):
     tokens = re.split(' ', s)
@@ -39,6 +39,7 @@ def remove_escape_chars(s):
 
 cleaned_subset = os.path.join(DATA_PATH, 'cleaned_subset.csv')
 nsfw_subset = os.path.join(DATA_PATH, 'virality_nsfw.csv')
+clickbait_subset = os.path.join(DATA_PATH, 'clickbait.csv')
 
 data_loc = os.path.join(DATA_PATH, 'data.csv')
 
@@ -46,7 +47,6 @@ data_loc = os.path.join(DATA_PATH, 'data.csv')
 df = pd.read_csv(cleaned_subset)
 df['Title'] = df['Title'].apply(clean)
 df['Description'] = df['Description'].apply(clean)
-
 df['Description'] = df['Description'].apply(remove_escape_chars)
 
 
@@ -54,6 +54,10 @@ df['Description'] = df['Description'].apply(remove_escape_chars)
 df_nsfw = pd.read_csv(nsfw_subset)
 df_nsfw['Id'] = df_nsfw['video_id']
 df_nsfw = df_nsfw[['Id', 'nsfw_score']]
+
+df_cb = pd.read_csv(clickbait_subset)
+
+df['clickbait-score'] = df_cb['Title-Clickbait']
 
 # Some have invalid Ids - drop them
 df = df[df['Id'] != '#NAME?']
