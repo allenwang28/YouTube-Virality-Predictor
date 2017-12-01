@@ -168,3 +168,6 @@ fabric.properties
 
 # Sonarlint plugin
 .idea/sonarlint
+
+# Big files
+./data/videoStats_known_channels.csv
