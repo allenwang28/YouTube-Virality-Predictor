@@ -171,3 +171,6 @@ fabric.properties
 
 # Big files
 data/videoStats_known_channels.csv
+data/channel_lang_final.csv
+data/All_data.csv
+scripts/*.csv
