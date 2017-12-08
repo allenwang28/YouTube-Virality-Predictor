@@ -12,7 +12,7 @@ from keras.layers import Dense
 from keras.layers import LSTM
 from keras.layers.embeddings import Embedding
 from keras.layers import Dense, Input, GlobalMaxPooling1D
-from keras.layers import Conv1D, MaxPooling1D, Embedding
+from keras.layers import Conv1D, MaxPooling1D, Embedding, Dropout, BatchNormalization
 from keras.preprocessing import sequence
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
@@ -22,7 +22,7 @@ from keras.models import Model
 
 MAX_SEQUENCE_LENGTH = 1000
 #MAX_NB_WORDS = 20000
-MAX_NB_WORDS = 15000
+#MAX_NB_WORDS = 15000
 VALIDATION_SPLIT = 0.2
 EMBEDDING_DIM = 100
 
@@ -45,24 +45,26 @@ for line in f:
 f.close()
 
 print ('Found %s word vectors.' % len(embeddings_index))
-
-
 print ('Now processing titles')
 
-df = pd.read_csv('../../data/data.csv', encoding='latin1')
+df = pd.read_csv('../../data/All_data.csv', encoding='latin1')
 
-df['Percentile-Bin'] = pd.qcut(df['ViewCount'], NUM_BINS, labels=range(NUM_BINS))
+#df['Percentile-Bin'] = pd.qcut(df['ViewCount'], NUM_BINS, labels=range(NUM_BINS))
+
+df = df[df['PrevViewCount'] > 0]
+df['IncreasedViews'] = ((df['ViewCount'] - df['PrevViewCount']) > 0).astype(int)
 df = df.dropna()
 
-X = df['Title']
-y = df['Percentile-Bin']
+X = df['Title'] + ' NEXTTITLE ' + df['PrevTitle']
+y = df['IncreasedViews']
 
 
 texts = set()
 for x in X:
     texts.add(x)
 
-tokenizer = Tokenizer(num_words=MAX_NB_WORDS)
+#tokenizer = Tokenizer(num_words=MAX_NB_WORDS)
+tokenizer = Tokenizer()
 tokenizer.fit_on_texts(texts)
 sequences = tokenizer.texts_to_sequences(texts)
 
@@ -88,10 +90,11 @@ x_val = data[-nb_validation_samples:]
 y_val = labels[-nb_validation_samples:]
 
 # prepare embedding matrix
-num_words = min(MAX_NB_WORDS, len(word_index.items()))
+#num_words = min(MAX_NB_WORDS, len(word_index.items()))
+num_words = len(word_index.items()) + 1
 embedding_matrix = np.zeros((num_words, EMBEDDING_DIM))
 for word, i in word_index.items():
-    if i >= MAX_NB_WORDS or i >= num_words:
+    if i >= num_words:
         continue
     embedding_vector = embeddings_index.get(word)
     if embedding_vector is not None:
@@ -111,12 +114,17 @@ sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
 embedded_sequences = embedding_layer(sequence_input)
 x = Conv1D(128, 5, activation='relu')(embedded_sequences)
 x = MaxPooling1D(5)(x)
-x = LSTM(128)(x)
+x = LSTM(512, return_sequences=True)(x)
+x = BatchNormalization()(x)
+x = Dropout(0.2)(x)
+x = LSTM(256)(x)
+x = BatchNormalization()(x)
+x = Dropout(0.2)(x)
 x = Dense(128, activation='relu')(x)
-preds = Dense(NUM_BINS, activation='softmax')(x)
+preds = Dense(2, activation='sigmoid')(x)
 
 model = Model(sequence_input, preds)
-model.compile(loss='categorical_crossentropy',
+model.compile(loss='binary_crossentropy',
               optimizer='rmsprop',
               metrics=['acc'])
 
