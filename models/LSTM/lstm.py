@@ -17,7 +17,9 @@ from keras.preprocessing import sequence
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical
-from keras.models import Model
+from keras.models import Model, load_model
+
+import os
 
 
 MAX_SEQUENCE_LENGTH = 1000
@@ -109,24 +111,29 @@ embedding_layer = Embedding(num_words,
 
 print('Training model.')
 
-# train a 1D convnet with global maxpooling
-sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
-embedded_sequences = embedding_layer(sequence_input)
-x = Conv1D(128, 5, activation='relu')(embedded_sequences)
-x = MaxPooling1D(5)(x)
-x = LSTM(512, return_sequences=True)(x)
-x = BatchNormalization()(x)
-x = Dropout(0.2)(x)
-x = LSTM(256)(x)
-x = BatchNormalization()(x)
-x = Dropout(0.2)(x)
-x = Dense(128, activation='relu')(x)
-preds = Dense(2, activation='sigmoid')(x)
+if (os.path.exists('predictor.h5')):
+    print('Loading existing model')
+    model = load_model('predictor.h5')
+    model.save('predictor-backup.h5')
+else:
+    # train a 1D convnet with global maxpooling
+    sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
+    embedded_sequences = embedding_layer(sequence_input)
+    x = Conv1D(128, 5, activation='relu')(embedded_sequences)
+    x = MaxPooling1D(5)(x)
+    x = LSTM(512, return_sequences=True)(x)
+    x = BatchNormalization()(x)
+    x = Dropout(0.2)(x)
+    x = LSTM(256)(x)
+    x = BatchNormalization()(x)
+    x = Dropout(0.2)(x)
+    x = Dense(128, activation='relu')(x)
+    preds = Dense(1, activation='sigmoid')(x)
 
-model = Model(sequence_input, preds)
-model.compile(loss='binary_crossentropy',
-              optimizer='rmsprop',
-              metrics=['acc'])
+    model = Model(sequence_input, preds)
+    model.compile(loss='binary_crossentropy',
+                  optimizer='rmsprop',
+                  metrics=['acc'])
 
 model.fit(x_train, y_train,
           batch_size=128,
